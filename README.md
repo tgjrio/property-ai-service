@@ -46,9 +46,82 @@ async def validate_input_format_ai(user_input: str, client) -> bool:
     )
     return response.choices[0].message.content.strip().lower() == "true"
 ```
-
+---
 ### 2. **Embedding Generation**
-Generates vector embeddings for user inputs using OpenAI's embedding model:
+**Normalizes row before embedding:**
+
+```python
+def preprocess_row(row, fields):
+    """Combine multiple fields into a single string for embedding generation with 
+    normalization and descriptive context."""
+    
+    logging.info("Starting preprocessing of row...")
+    
+    # Step 1: Normalize Data (convert to lowercase, strip spaces, replace missing values with 'none')
+    normalized_row = {}
+    for field in fields:
+        if field in row:
+            value = row[field]
+            normalized_row[field] = str(value).strip().lower() if value else "none"
+        else:
+            normalized_row[field] = "none"  # Explicitly handle missing fields
+    
+    logging.info(f"Step 1 - Normalized row: {normalized_row}")
+    
+    # Step 2: Create Descriptive Context for Embedding
+    descriptive_context = []
+    for field in fields:
+        value = normalized_row[field]
+        descriptive_context.append(f"{field}: {value}")
+    
+    descriptive_text = " | ".join(descriptive_context)
+    logging.info(f"Step 2 - Descriptive text for embedding: {descriptive_text}")
+    
+    # Step 3: Verify Output
+    if not descriptive_text:
+        logging.warning("Preprocessing resulted in an empty descriptive text. Check row data.")
+    else:
+        logging.info("Preprocessing completed successfully.")
+    
+    return descriptive_text
+
+```
+
+**EXAMPLE RESPONSE FOR NORMALIZING ROWS:**
+
+``` json
+{
+	'city': 'atlanta', 
+	'state': 'ga', 
+	'county': 'none', 
+	'zipcode': 'none', 
+	'datePosted': "{'value': 'none', 'operator': 'none'}", 
+	'datesold': "{'value': 'none', 'operator': 'none'}", 
+	'hometype': 'single family', 
+	'homestatus': 'for sale', 
+	'price': "{'value': 800000, 'operator': 'lte'}", 
+	'yearbuilt': "{'value': none, 'operator': 'none'}", 
+	'livingarea': "{'value': none, 'operator': 'none'}", 
+	'bathrooms': "{'value': none, 'operator': 'none'}", 
+	'bedrooms': "{'value': none, 'operator': 'none'}", 
+	'pageviewcount': "{'value': none, 'operator': 'none'}", 
+	'favoritecount': "{'value': none, 'operator': 'none'}"
+}
+```
+-
+
+**EXAMPLE RESPONSE FOR DESCRIPTIVE TEXT:**
+
+``` text
+city: atlanta | state: ga | county: none | zipcode: none | datePosted: {'value': 'none', 'operator': 'none'} | datesold: {'value': 'none', 'operator': 'none'} | hometype: single family | homestatus: for sale | 
+'price: {'value': 800000, 'operator': 'lte'} | yearbuilt: {'value': none, 'operator': 'none'} | 
+livingarea: {'value': none, 'operator': 'none'} | bathrooms: {'value': none, 'operator': 'none'} | 
+bedrooms: {'value': none, 'operator': 'none'} | 
+pageviewcount: {'value': none, 'operator': 'none'} | favoritecount: {'value': none, 'operator': 'none'}
+```
+-
+
+**Generates vector embeddings for user inputs using OpenAI's embedding model:**
 ```python
 def generate_embedding(input_data: str):
     """
@@ -60,6 +133,13 @@ def generate_embedding(input_data: str):
     )
     return response.data[0].embedding
 ```
+**EXAMPLE EMBEDDING:**
+``` text
+[-0.019218720495700836,0.025079138576984406,-0.00576705252751708,0.037690527737140656,0.01233129482716322,...]
+```
+-
+
+---
 
 ### 3. **Querying Datastax**
 Queries the Datastax collection using embeddings and dynamic filters:
@@ -88,6 +168,21 @@ def query_datastax_with_embedding(embedding, parsed_fields):
     )
     return [{"document": result, "similarity": result.get("$similarity", None)} for result in list(cursor)]
 ```
+**EXAMPLE DYNAMIC FILTERING**
+``` text
+{
+    '$and': [
+        {'city': 'Atlanta'}, 
+        {'state': 'GA'}, 
+        {'hometype': 'Single Family'}, 
+        {'homestatus': 'For Sale'}, 
+        {'price': {'$lte': 800000}} -- lte = Less than or equal to
+    ]
+} 
+```
+-
+
+---
 
 ### 4. **Summary Generation**
 Generates a summary of the property data using GPT:
@@ -106,7 +201,6 @@ def generate_summary(property_data, user_input):
     )
     return response.choices[0].message.content
 ```
-
 ---
 
 ## Workflow
