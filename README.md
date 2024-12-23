@@ -89,7 +89,7 @@ def preprocess_row(row, fields):
 
 **EXAMPLE RESPONSE FOR NORMALIZING ROWS:**
 
-``` json
+```txt
 {
 	'city': 'atlanta', 
 	'state': 'ga', 
