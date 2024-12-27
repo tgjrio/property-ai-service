@@ -29,14 +29,6 @@ class UserRequest(BaseModel):
 async def process_request(user_request: UserRequest):
     user_input = user_request.user_input
 
-    # Step 2: Validate language
-    if not qh.validate_language(user_input):
-        logging.info("Unsupported language detected.")
-        return {
-            "status": "error",
-            "message": "Please submit your query in English."
-        }
-
     # Step 1: Validate input format
     if not await qh.validate_input_format_ai(user_input, client):
         invalid_input_message = await qh.generate_invalid_input_message(user_input, client)

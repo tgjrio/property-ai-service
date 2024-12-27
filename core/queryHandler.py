@@ -51,7 +51,7 @@ async def validate_input_format_ai(user_input: str, client) -> bool:
             messages=[
                 {"role": "system", "content": (
                     "Evaluate the following query and determine if it is a valid natural-language question "
-                    "about real estate or property listings. Respond with 'true' if it is valid, or 'false' if it is invalid."
+                    "about real estate or property listings and in english. Respond with 'true' if it is valid, or 'false' if it is invalid."
                 )},
                 {"role": "user", "content": user_input}
             ]
@@ -80,11 +80,13 @@ async def validate_query(user_input: str, client) -> dict:
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": (
+                    "The database isn't realtime and that's okay.  This is an example demonstration app so if the question seems like it's asking for real-time data, don't flag it."
                     "Evaluate the following query for three things: "
                     "1. Is it ambiguous or unclear? "
                     "2. Is it related to real estate? "
                     "3. Does it ask for investor-specific insights, property comparisons, or involve unsupported complexity? "
                     "Respond strictly with a valid JSON object that adheres to the schema."
+                    
                 )},
                 {"role": "user", "content": user_input}
             ],
