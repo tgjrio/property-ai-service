@@ -1,4 +1,4 @@
-# Zillow Chatbot Service
+# Property Ai Service
 
 This README outlines the design and functionality of a chatbot service that allows end users to interact with Zillow data using natural language queries. The system retrieves property data based on user inputs, leveraging OpenAI for query validation and embedding generation, and Datastax for data retrieval.
 
