@@ -29,7 +29,7 @@ class UserRequest(BaseModel):
 async def process_request(user_request: UserRequest):
     user_input = user_request.user_input
 
-    # Step 1: Validate input format
+    # Validate input format
     if not await qh.validate_input_format_ai(user_input, client):
         invalid_input_message = await qh.generate_invalid_input_message(user_input, client)
         return {
@@ -37,7 +37,7 @@ async def process_request(user_request: UserRequest):
             "message": invalid_input_message
         }
 
-    # Step 3: Validate the query for ambiguity and relevance
+    # Validate the query for ambiguity and relevance
     validation = await qh.validate_query(user_input, client)
 
     # Handle ambiguous queries
@@ -97,7 +97,7 @@ async def fetch_data(parsed_fields, fields_to_embed: List[str], user_input: str)
                         """
                 }
 
-        # Step 4: Summarize results
+        # Summarize results
         summary = hp.generate_summary(results, user_input)
 
         finalResults = {
