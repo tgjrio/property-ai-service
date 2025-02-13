@@ -70,13 +70,13 @@ async def process_request(user_request: UserRequest):
 async def fetch_data(parsed_fields, fields_to_embed: List[str], user_input: str):
     logging.info("Processing non-aggregate embed request...")
     try:
-        # Step 1: Generate embedding for user input
+        # Generate embedding for user input
         embedding_input = hp.preprocess_row(parsed_fields, fields_to_embed)
         embedding = hp.generate_embedding(embedding_input)
         if not embedding:
             raise HTTPException(status_code=500, detail="Failed to parse user input.")
 
-        # Step 3: Query main dataset with filters and embedding
+        # Query main dataset with filters and embedding
         results = hp.query_datastax_with_embedding(embedding, parsed_fields)
         if not results:
             logging.info("No properties found matching the given filters.")
